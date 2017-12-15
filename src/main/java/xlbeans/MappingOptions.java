@@ -1,10 +1,10 @@
-package excelRM;
+package xlbeans;
 
 import java.util.ArrayList;
 
 import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 
-import excelRM.beans.Index;
+import xlbeans.beans.Index;
 
 /**
  * This class will provide various options to assist in extracting data from

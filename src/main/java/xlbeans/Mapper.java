@@ -1,4 +1,4 @@
-package excelRM;
+package xlbeans;
 
 /**
  * Main class to map excel sheet into java objects.

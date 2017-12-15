@@ -1,4 +1,4 @@
-package excelRM.beans;
+package xlbeans.beans;
 
 /**
  * This class will provide the starting point of the excel sheet.

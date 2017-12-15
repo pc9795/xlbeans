@@ -1,4 +1,4 @@
-package excelRM;
+package xlbeans;
 
 /**
  * Functional interface which will provide a method to transform the extracted
