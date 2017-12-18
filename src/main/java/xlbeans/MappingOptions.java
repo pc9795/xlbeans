@@ -2,8 +2,6 @@ package xlbeans;
 
 import java.util.ArrayList;
 
-import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
-
 import xlbeans.beans.Index;
 
 /**
@@ -12,17 +10,17 @@ import xlbeans.beans.Index;
  * 
  * @author Prashant Chaubey created on: Dec 15, 2017
  */
-public class MappingOptions {
+public final class MappingOptions {
 
 	private Index startingPosition;
-	private MissingCellPolicy missingCellPolicy;
+	private MissingCellAction missingCellAction;
 	private int targetSheet;
 	private boolean compareTitles;
 	private ListGenerator generator;
 
 	private MappingOptions(MappingOptionsBuilder builder) {
 		this.startingPosition = builder.startingPosition;
-		this.missingCellPolicy = builder.missingCellPolicy;
+		this.missingCellAction = builder.missingCellAction;
 		this.targetSheet = builder.targetSheet;
 		this.compareTitles = builder.compareTitles;
 		this.generator = builder.generator;
@@ -32,8 +30,8 @@ public class MappingOptions {
 		return startingPosition;
 	}
 
-	public MissingCellPolicy getMissingCellPolicy() {
-		return missingCellPolicy;
+	public MissingCellAction getMissingCellAction() {
+		return missingCellAction;
 	}
 
 	public int getTargetSheet() {
@@ -51,11 +49,13 @@ public class MappingOptions {
 	/**
 	 * Builder class for Mapping options.
 	 * 
-	 * @author Prashant Chaubey created on: Dec 15, 2017
+	 * @author Prashant Chaubey created on:Dec 15,2017
 	 */
+
 	public static class MappingOptionsBuilder {
+
 		private Index startingPosition = new Index(0, 0);
-		private MissingCellPolicy missingCellPolicy = MissingCellPolicy.RETURN_BLANK_AS_NULL;
+		private MissingCellAction missingCellAction = MissingCellAction.RETURN_BLANK_AS_NULL;
 		private int targetSheet = 0;
 		private boolean compareTitles = false;
 		private ListGenerator generator = () -> new ArrayList<>();
@@ -65,8 +65,8 @@ public class MappingOptions {
 			return this;
 		}
 
-		public MappingOptionsBuilder setMissingCellPolicy(MissingCellPolicy missingCellPolicy) {
-			this.missingCellPolicy = missingCellPolicy;
+		public MappingOptionsBuilder setMissingCellPolicy(MissingCellAction missingCellAction) {
+			this.missingCellAction = missingCellAction;
 			return this;
 		}
 
