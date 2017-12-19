@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface ExcelCell {
+public @interface XlCell {
 
 	/**
 	 * It will tell the position of the field in the cell.

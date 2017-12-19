@@ -5,28 +5,28 @@ package xlbeans.exception;
  * 
  * @author Prashant Chaubey created on 18-Dec-2017
  */
-public class IllegalExcelBeanException extends Exception {
+public class XlBeansIllegalExcelBeanException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public IllegalExcelBeanException() {
+	public XlBeansIllegalExcelBeanException() {
 		super();
 	}
 
-	public IllegalExcelBeanException(String message, Throwable cause, boolean enableSuppression,
+	public XlBeansIllegalExcelBeanException(String message, Throwable cause, boolean enableSuppression,
 			boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 
-	public IllegalExcelBeanException(String message, Throwable cause) {
+	public XlBeansIllegalExcelBeanException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public IllegalExcelBeanException(String message) {
+	public XlBeansIllegalExcelBeanException(String message) {
 		super(message);
 	}
 
-	public IllegalExcelBeanException(Throwable cause) {
+	public XlBeansIllegalExcelBeanException(Throwable cause) {
 		super(cause);
 	}
 

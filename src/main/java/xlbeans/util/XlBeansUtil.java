@@ -10,7 +10,7 @@ import xlbeans.MissingCellAction;
  * 
  * @author Prashant Chaubey created on 18-Dec-2017
  */
-public class Util {
+public class XlBeansUtil {
 
 	/**
 	 * To check whether the annotated field's data type is supported by library or
@@ -20,13 +20,22 @@ public class Util {
 	 * @return
 	 */
 	public static boolean isPermissibleFieldType(String fieldType) {
-		if (Constants.permissibleFieldTypes.contains(fieldType)) {
+		if (XlBeansConstants.PERMISSIBLE_FIELD_TYPES.contains(fieldType)) {
 			return true;
 		}
 		return false;
 	}
 
+	/**
+	 * Convert over custom enum for missing cell problems to the standard poi one
+	 * 
+	 * @param action
+	 * @return
+	 */
 	public static MissingCellPolicy getMissingCellPolicy(MissingCellAction action) {
+		if (action == null) {
+			throw new RuntimeException("Illegal missing cell action recieved<null>");
+		}
 		switch (action) {
 		case CREATE_NULL_AS_BLANK:
 			return MissingCellPolicy.CREATE_NULL_AS_BLANK;
@@ -39,27 +48,32 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Compare cell type with the permissible field types.
+	 * 
+	 * @param cellType
+	 * @param fieldType
+	 * @return
+	 */
 	public static boolean compareCellTypeEnumWithDataTypeString(CellType cellType, String fieldType) {
+		if (cellType == null || fieldType == null) {
+			return false;
+		}
 		switch (cellType) {
 		case _NONE:
 			return false;
 		case BLANK:
 			return false;
 		case BOOLEAN:
-			return (fieldType.equals("boolean") || fieldType.equals("Boolean")) ? true : false;
+			return (fieldType.equals("boolean") || fieldType.equals("java.lang.Boolean")) ? true : false;
 		case ERROR:
 			return false;
 		case FORMULA:
 			return false;
 		case NUMERIC:
-			return (fieldType.equals("byte") || fieldType.equals("Byte") || fieldType.equals("short")
-					|| fieldType.equals("Short") || fieldType.equals("int") || fieldType.equals("Integer")
-					|| fieldType.equals("long") || fieldType.equals("Long") || fieldType.equals("float")
-					|| fieldType.equals("Float") || fieldType.equals("double") || fieldType.equals("Double")) ? true
-							: false;
+			return (XlBeansConstants.PERMISSIBLE_NUMERIC_FIELD_TYPES.contains(fieldType)) ? true : false;
 		case STRING:
-			return (fieldType.equals("java.util.String") || fieldType.equals("java.util.Date")
-					|| fieldType.equals("java.time.LocalDate")) ? true : false;
+			return (XlBeansConstants.PERMISSIBLE_STRING_TYPES.contains(fieldType)) ? true : false;
 		default:
 			return false;
 		}

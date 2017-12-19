@@ -16,5 +16,5 @@ public interface Transformer<T> {
 	 * @param excelBean
 	 * @return
 	 */
-	T transform(T excelBean);
+	T transform(T xlBean);
 }

@@ -21,13 +21,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import xlbeans.annotations.Disabled;
-import xlbeans.annotations.ExcelCell;
-import xlbeans.beans.ExcelCellInfo;
-import xlbeans.exception.IllegalExcelBeanException;
-import xlbeans.exception.IllegalFileException;
-import xlbeans.exception.IllegalFileFormatException;
+import xlbeans.annotations.XlCell;
+import xlbeans.beans.XlCellInfo;
 import xlbeans.exception.XLBeansException;
-import xlbeans.util.Util;
+import xlbeans.exception.XlBeansIllegalExcelBeanException;
+import xlbeans.exception.XlBeansIllegalFileFormatException;
+import xlbeans.util.XlBeansUtil;
 
 /**
  * Main class to map excel sheet into java objects.
@@ -35,110 +34,128 @@ import xlbeans.util.Util;
  * @author Prashant Chaubey created on: Dec 15, 2017
  */
 public final class Mapper<T> implements AutoCloseable {
-	private Workbook excelWorkbook;
+	private Workbook xlWorkbook;
 	private Optional<MappingOptions> mappingOptions;
 	private Optional<Transformer<T>> transformer;
-	private Map<Integer, ExcelCellInfo> excelDataTypeMap = new HashMap<>();
+	private Map<Integer, XlCellInfo> xlDataTypeMap = new HashMap<>();
 	private Class<T> clazz;
 
 	/**
 	 * Method exposed to generate xlbeans from give excelFile.
 	 * 
-	 * @param excelFile
+	 * @param xlFile
 	 * @param clazz
-	 * @throws IllegalFileException
-	 * @throws IllegalFileFormatException
-	 * @throws IllegalExcelBeanException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalExcelBeanException
 	 * @throws XLBeansException
 	 */
-	public List<T> map(Path excelFile, Class<T> clazz)
-			throws IllegalFileException, IllegalFileFormatException, IllegalExcelBeanException, XLBeansException {
-		return _map(excelFile, clazz, null, null);
+	public List<T> map(Path xlFile, Class<T> clazz)
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+		return _map(xlFile, clazz, null, null);
 	}
 
 	/**
 	 * Method exposed to generate xlbeans from give excelFile.
 	 * 
-	 * @param excelFile
+	 * @param xlFile
 	 * @param clazz
 	 * @param mappingOptions
-	 * @throws IllegalFileException
-	 * @throws IllegalFileFormatException
-	 * @throws IllegalExcelBeanException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalExcelBeanException
 	 * @throws XLBeansException
 	 */
-	public List<T> map(Path excelFile, Class<T> clazz, MappingOptions mappingOptions)
-			throws IllegalFileException, IllegalFileFormatException, IllegalExcelBeanException, XLBeansException {
-		return _map(excelFile, clazz, mappingOptions, null);
+	public List<T> map(Path xlFile, Class<T> clazz, MappingOptions mappingOptions)
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+		return _map(xlFile, clazz, mappingOptions, null);
 	}
 
 	/**
 	 * Method exposed to generate xlbeans from give excelFile.
 	 * 
-	 * @param excelFile
+	 * @param xlFile
 	 * @param clazz
 	 * @param transformer
-	 * @throws IllegalFileException
-	 * @throws IllegalFileFormatException
-	 * @throws IllegalExcelBeanException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalExcelBeanException
 	 * @throws XLBeansException
 	 */
-	public List<T> map(Path excelFile, Class<T> clazz, Transformer<T> transformer)
-			throws IllegalFileException, IllegalFileFormatException, IllegalExcelBeanException, XLBeansException {
-		return _map(excelFile, clazz, null, transformer);
+	public List<T> map(Path xlFile, Class<T> clazz, Transformer<T> transformer)
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+		return _map(xlFile, clazz, null, transformer);
 	}
 
 	/**
 	 * Method exposed to generate xlbeans from give excelFile.
 	 * 
-	 * @param excelFile
+	 * @param xlFile
 	 * @param clazz
 	 * @param mappingOptions
 	 * @param transformer
-	 * @throws IllegalFileException
-	 * @throws IllegalFileFormatException
-	 * @throws IllegalExcelBeanException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalExcelBeanException
 	 * @throws XLBeansException
 	 */
-	public List<T> map(Path excelFile, Class<T> clazz, MappingOptions mappingOptions, Transformer<T> transformer)
-			throws IllegalFileException, IllegalFileFormatException, IllegalExcelBeanException, XLBeansException {
-		return _map(excelFile, clazz, mappingOptions, transformer);
+	public List<T> map(Path xlFile, Class<T> clazz, MappingOptions mappingOptions, Transformer<T> transformer)
+			throws XlBeansIllegalExcelBeanException, XLBeansException, XlBeansIllegalFileFormatException {
+		return _map(xlFile, clazz, mappingOptions, transformer);
 	}
 
 	/**
 	 * driver method which will process the excelFile.
 	 * 
-	 * @param excelFile
+	 * @param xlFile
 	 * @param clazz
 	 * @param mappingOptions
 	 * @param transformer
-	 * @throws IllegalFileException
-	 * @throws IllegalFileFormatException
-	 * @throws IllegalExcelBeanException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XlBeansIllegalExcelBeanException
 	 * @throws XLBeansException
 	 */
-	private List<T> _map(Path excelFile, Class<T> clazz, MappingOptions mappingOptions, Transformer<T> transformer)
-			throws IllegalFileException, IllegalFileFormatException, IllegalExcelBeanException, XLBeansException {
-		if (excelFile == null) {
-			throw new IllegalFileException("Null object recieved");
+	private List<T> _map(Path xlFile, Class<T> clazz, MappingOptions mappingOptions, Transformer<T> transformer)
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+		validateAndConfigure(xlFile, clazz, mappingOptions, transformer);
+		createMapForXlBeanTypes(clazz);
+		return processExcelSheet();
+	}
+
+	/**
+	 * Necessary validations before processing the file.
+	 * 
+	 * @param xlFile
+	 * @param clazz
+	 * @param mappingOptions
+	 * @param transformer
+	 * @throws XlBeansIllegalFileFormatException
+	 * @throws XLBeansException
+	 */
+	private void validateAndConfigure(Path xlFile, Class<T> clazz, MappingOptions mappingOptions,
+			Transformer<T> transformer) throws XlBeansIllegalFileFormatException, XLBeansException {
+		if (xlFile == null) {
+			throw new XlBeansIllegalFileFormatException("Null object recieved");
 		}
-		if (!Files.exists(excelFile)) {
-			throw new IllegalFileException("File doesn't exists");
+		if (!Files.exists(xlFile)) {
+			throw new XlBeansIllegalFileFormatException("File doesn't exists");
 		}
-		if (!excelFile.endsWith(".xlsx") || !excelFile.endsWith(".xls")) {
-			throw new IllegalFileException("Not a valid file(.xls or .xlsx)");
+		if (!xlFile.toString().endsWith(".xlsx") && !xlFile.toString().endsWith(".xls")) {
+			throw new XlBeansIllegalFileFormatException("Not a valid file(.xls or .xlsx)");
 		}
 		try {
-			if (excelFile.endsWith(".xls")) {
-				this.excelWorkbook = new HSSFWorkbook(Files.newInputStream(excelFile));
-			} else if (excelFile.endsWith(".xlsx")) {
-				this.excelWorkbook = new XSSFWorkbook(Files.newInputStream(excelFile));
+			if (xlFile.toString().endsWith(".xls")) {
+				this.xlWorkbook = new HSSFWorkbook(Files.newInputStream(xlFile));
+			} else if (xlFile.toString().endsWith(".xlsx")) {
+				this.xlWorkbook = new XSSFWorkbook(Files.newInputStream(xlFile));
 			}
 		} catch (IOException e) {
-			throw new IllegalFileFormatException("Could not able to get the workbook from the excel file", e);
+			throw new XlBeansIllegalFileFormatException("Could not able to get the workbook from the excel file", e);
 		}
-
-		this.clazz = clazz;
+		if (clazz == null) {
+			throw new XLBeansException("Cannot supply a null value for class object");
+		}
 		if (mappingOptions != null) {
 			this.mappingOptions = Optional.of(mappingOptions);
 		} else {
@@ -149,8 +166,7 @@ public final class Mapper<T> implements AutoCloseable {
 		} else {
 			this.transformer = Optional.empty();
 		}
-		createMapForExcelBeanTypes(clazz);
-		return processExcelSheet();
+
 	}
 
 	/**
@@ -158,9 +174,9 @@ public final class Mapper<T> implements AutoCloseable {
 	 * mapping.
 	 * 
 	 * @param clazz
-	 * @throws IllegalExcelBeanException
+	 * @throws XlBeansIllegalExcelBeanException
 	 */
-	private void createMapForExcelBeanTypes(Class<? super T> clazz) throws IllegalExcelBeanException {
+	private void createMapForXlBeanTypes(Class<? super T> clazz) throws XlBeansIllegalExcelBeanException {
 		if (clazz == null) {
 			return;
 		}
@@ -171,28 +187,29 @@ public final class Mapper<T> implements AutoCloseable {
 			if (disabled != null) {
 				continue;
 			}
-			ExcelCell cell = field.getAnnotation(ExcelCell.class);
+			XlCell cell = field.getAnnotation(XlCell.class);
 			if (cell == null) {
 				continue;
 			} else {
 				Class<? extends Object> fieldClazz = field.getType();
-				if (Util.isPermissibleFieldType(fieldClazz.getName())) {
-					ExcelCellInfo info = new ExcelCellInfo();
+				if (XlBeansUtil.isPermissibleFieldType(fieldClazz.getName())) {
+					XlCellInfo info = new XlCellInfo();
 					info.setPosition(cell.position());
 					info.setTitle(cell.title());
 					info.setField(field);
-					if (this.excelDataTypeMap.containsKey(cell.position())) {
-						throw new IllegalExcelBeanException("Dupliate positions found");
+					info.setFieldName(field.getName());
+					if (this.xlDataTypeMap.containsKey(cell.position())) {
+						throw new XlBeansIllegalExcelBeanException("Dupliate positions found");
 					} else {
-						this.excelDataTypeMap.put(cell.position(), info);
+						this.xlDataTypeMap.put(cell.position(), info);
 					}
 				} else {
-					throw new IllegalExcelBeanException(field.getType() + " is not supported");
+					throw new XlBeansIllegalExcelBeanException(field.getType() + " is not supported");
 				}
 
 			}
 		}
-		createMapForExcelBeanTypes(clazz.getSuperclass());
+		createMapForXlBeanTypes(clazz.getSuperclass());
 
 	}
 
@@ -201,10 +218,10 @@ public final class Mapper<T> implements AutoCloseable {
 	 * extract list of xlbeans.
 	 * 
 	 * @return
-	 * @throws IllegalFileException
+	 * @throws XlBeansIllegalFileFormatException
 	 * @throws XLBeansException
 	 */
-	private List<T> processExcelSheet() throws IllegalFileException, XLBeansException {
+	private List<T> processExcelSheet() throws XlBeansIllegalFileFormatException, XLBeansException {
 		try {
 			int sheetNo = 0;
 			List<? extends Object> beansList = new ArrayList<>();
@@ -217,37 +234,39 @@ public final class Mapper<T> implements AutoCloseable {
 				beansList = this.mappingOptions.get().getGenerator().generate();
 				x = this.mappingOptions.get().getStartingPosition().getX();
 				y = this.mappingOptions.get().getStartingPosition().getY();
-				missingCellPolicy = Util.getMissingCellPolicy(this.mappingOptions.get().getMissingCellAction());
+				missingCellPolicy = XlBeansUtil.getMissingCellPolicy(this.mappingOptions.get().getMissingCellAction());
 			}
 			if (x < 0 || y < 0) {
-				throw new IllegalFileException("Invalid index to start parsing file(" + x + "," + y + ")");
+				throw new XlBeansIllegalFileFormatException("Invalid index to start parsing file(" + x + "," + y + ")");
 			}
 
-			this.excelWorkbook.setMissingCellPolicy(missingCellPolicy);
-			Sheet sheet = this.excelWorkbook.getSheetAt(sheetNo);
+			this.xlWorkbook.setMissingCellPolicy(missingCellPolicy);
+			Sheet sheet = this.xlWorkbook.getSheetAt(sheetNo);
 
 			if (compareTitles) {
 				if (y == 0) {
-					throw new IllegalFileException("Cannot compare titles if the data is in the first row");
+					throw new XlBeansIllegalFileFormatException(
+							"Cannot compare titles if the data is in the first row");
 				}
 				Row titleRow = sheet.getRow(y - 1);
 				int max = getMaximumKeyFromMap();
 				if (max > titleRow.getLastCellNum()) {
-					throw new IllegalFileException(
+					throw new XlBeansIllegalFileFormatException(
 							"Last cell number can't be smaller than maximum configured position");
 				}
 				for (int i = x; i < max; i++) {
-					if (!this.excelDataTypeMap.containsKey(i)) {
+					if (!this.xlDataTypeMap.containsKey(i)) {
 						continue;
 					}
 					CellType type = titleRow.getCell(i).getCellTypeEnum();
 					if (type != CellType.STRING) {
-						throw new IllegalFileException("Title at (" + i + "," + (y - 1) + ") is not a string");
+						throw new XlBeansIllegalFileFormatException(
+								"Title at (" + i + "," + (y - 1) + ") is not a string");
 					}
 					String title = titleRow.getCell(i).getStringCellValue();
-					if (!title.equals(this.excelDataTypeMap.get(i).getTitle())) {
-						throw new IllegalFileException("At (" + i + "," + (y - 1) + ") Expected:"
-								+ this.excelDataTypeMap.get(i).getTitle() + ",Found:" + title);
+					if (!title.equals(this.xlDataTypeMap.get(i).getTitle())) {
+						throw new XlBeansIllegalFileFormatException("At (" + i + "," + (y - 1) + ") Expected:"
+								+ this.xlDataTypeMap.get(i).getTitle() + ",Found:" + title);
 					}
 
 				}
@@ -259,16 +278,16 @@ public final class Mapper<T> implements AutoCloseable {
 					}
 					T obj = clazz.newInstance();
 					for (int i = x; i < max; i++) {
-						if (!this.excelDataTypeMap.containsKey(i)) {
+						if (!this.xlDataTypeMap.containsKey(i)) {
 							continue;
 						}
-						ExcelCellInfo info = this.excelDataTypeMap.get(i);
+						XlCellInfo info = this.xlDataTypeMap.get(i);
 						Cell cell = row.getCell(x);
 						CellType cellType = cell.getCellTypeEnum();
-						if (!Util.compareCellTypeEnumWithDataTypeString(cellType,
+						if (!XlBeansUtil.compareCellTypeEnumWithDataTypeString(cellType,
 								info.getField().getType().getName())) {
 							// TODO
-							throw new IllegalFileException();
+							throw new XlBeansIllegalFileFormatException();
 						}
 						if (this.transformer.isPresent()) {
 							obj = this.transformer.get().transform(obj);
@@ -294,7 +313,7 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @return
 	 */
 	private int getMaximumKeyFromMap() {
-		Set<Integer> keys = this.excelDataTypeMap.keySet();
+		Set<Integer> keys = this.xlDataTypeMap.keySet();
 		int max = Integer.MIN_VALUE;
 		for (Integer key : keys) {
 			if (key > max) {
@@ -304,10 +323,15 @@ public final class Mapper<T> implements AutoCloseable {
 		return max;
 	}
 
+	/**
+	 * close the excel workbook resource.
+	 * 
+	 * @throws IOException
+	 */
 	@Override
-	public void close() throws Exception {
-		if (this.excelWorkbook != null) {
-			this.excelWorkbook.close();
+	public void close() throws IOException {
+		if (this.xlWorkbook != null) {
+			this.xlWorkbook.close();
 		}
 	}
 

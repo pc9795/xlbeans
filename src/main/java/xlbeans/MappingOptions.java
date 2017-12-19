@@ -2,8 +2,6 @@ package xlbeans;
 
 import java.util.ArrayList;
 
-import xlbeans.beans.Index;
-
 /**
  * This class will provide various options to assist in extracting data from
  * excel sheet.
@@ -65,7 +63,7 @@ public final class MappingOptions {
 			return this;
 		}
 
-		public MappingOptionsBuilder setMissingCellPolicy(MissingCellAction missingCellAction) {
+		public MappingOptionsBuilder setMissingCellAction(MissingCellAction missingCellAction) {
 			this.missingCellAction = missingCellAction;
 			return this;
 		}
@@ -87,6 +85,29 @@ public final class MappingOptions {
 
 		public MappingOptions build() {
 			return new MappingOptions(this);
+		}
+	}
+
+	/**
+	 * This class will provide the starting point of the excel sheet.
+	 * 
+	 * @author Prashant Chaubey created on: Dec 15, 2017
+	 */
+	public static class Index {
+		private int x;
+		private int y;
+
+		public Index(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+
+		public int getX() {
+			return x;
+		}
+
+		public int getY() {
+			return y;
 		}
 
 	}
