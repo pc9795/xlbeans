@@ -23,7 +23,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import xlbeans.annotations.Disabled;
 import xlbeans.annotations.XlCell;
 import xlbeans.beans.XlCellInfo;
-import xlbeans.exception.XLBeansException;
+import xlbeans.exception.XlBeansException;
 import xlbeans.exception.XlBeansIllegalExcelBeanException;
 import xlbeans.exception.XlBeansIllegalFileFormatException;
 import xlbeans.util.XlBeansUtil;
@@ -51,7 +51,7 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XLBeansException
 	 */
 	public List<T> map(Path xlFile, Class<T> clazz)
-			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XlBeansException {
 		return _map(xlFile, clazz, null, null);
 	}
 
@@ -67,7 +67,7 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XLBeansException
 	 */
 	public List<T> map(Path xlFile, Class<T> clazz, MappingOptions mappingOptions)
-			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XlBeansException {
 		return _map(xlFile, clazz, mappingOptions, null);
 	}
 
@@ -83,7 +83,7 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XLBeansException
 	 */
 	public List<T> map(Path xlFile, Class<T> clazz, Transformer<T> transformer)
-			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XlBeansException {
 		return _map(xlFile, clazz, null, transformer);
 	}
 
@@ -100,7 +100,7 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XLBeansException
 	 */
 	public List<T> map(Path xlFile, Class<T> clazz, MappingOptions mappingOptions, Transformer<T> transformer)
-			throws XlBeansIllegalExcelBeanException, XLBeansException, XlBeansIllegalFileFormatException {
+			throws XlBeansIllegalExcelBeanException, XlBeansException, XlBeansIllegalFileFormatException {
 		return _map(xlFile, clazz, mappingOptions, transformer);
 	}
 
@@ -117,10 +117,10 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XLBeansException
 	 */
 	private List<T> _map(Path xlFile, Class<T> clazz, MappingOptions mappingOptions, Transformer<T> transformer)
-			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XLBeansException {
+			throws XlBeansIllegalFileFormatException, XlBeansIllegalExcelBeanException, XlBeansException {
 		validateAndConfigure(xlFile, clazz, mappingOptions, transformer);
 		createMapForXlBeanTypes(clazz);
-		return processExcelSheet();
+		return processXlSheet();
 	}
 
 	/**
@@ -134,7 +134,7 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XLBeansException
 	 */
 	private void validateAndConfigure(Path xlFile, Class<T> clazz, MappingOptions mappingOptions,
-			Transformer<T> transformer) throws XlBeansIllegalFileFormatException, XLBeansException {
+			Transformer<T> transformer) throws XlBeansIllegalFileFormatException, XlBeansException {
 		if (xlFile == null) {
 			throw new XlBeansIllegalFileFormatException("Null object recieved");
 		}
@@ -154,8 +154,9 @@ public final class Mapper<T> implements AutoCloseable {
 			throw new XlBeansIllegalFileFormatException("Could not able to get the workbook from the excel file", e);
 		}
 		if (clazz == null) {
-			throw new XLBeansException("Cannot supply a null value for class object");
+			throw new XlBeansException("Cannot supply a null value for class object");
 		}
+		this.clazz = clazz;
 		if (mappingOptions != null) {
 			this.mappingOptions = Optional.of(mappingOptions);
 		} else {
@@ -166,7 +167,6 @@ public final class Mapper<T> implements AutoCloseable {
 		} else {
 			this.transformer = Optional.empty();
 		}
-
 	}
 
 	/**
@@ -221,10 +221,10 @@ public final class Mapper<T> implements AutoCloseable {
 	 * @throws XlBeansIllegalFileFormatException
 	 * @throws XLBeansException
 	 */
-	private List<T> processExcelSheet() throws XlBeansIllegalFileFormatException, XLBeansException {
+	private List<T> processXlSheet() throws XlBeansIllegalFileFormatException, XlBeansException {
 		try {
 			int sheetNo = 0;
-			List<? extends Object> beansList = new ArrayList<>();
+			List<Object> beansList = new ArrayList<>();
 			int x = 0;
 			int y = 0;
 			MissingCellPolicy missingCellPolicy = MissingCellPolicy.RETURN_BLANK_AS_NULL;
@@ -237,19 +237,26 @@ public final class Mapper<T> implements AutoCloseable {
 				missingCellPolicy = XlBeansUtil.getMissingCellPolicy(this.mappingOptions.get().getMissingCellAction());
 			}
 			if (x < 0 || y < 0) {
-				throw new XlBeansIllegalFileFormatException("Invalid index to start parsing file(" + x + "," + y + ")");
+				throw new XlBeansException("Invalid index to start parsing file(" + x + "," + y + ")");
+			}
+
+			if (sheetNo < 0) {
+				throw new XlBeansException("Invalid sheet index(" + sheetNo + ")");
 			}
 
 			this.xlWorkbook.setMissingCellPolicy(missingCellPolicy);
 			Sheet sheet = this.xlWorkbook.getSheetAt(sheetNo);
 
+			// TODO
+			compareTitles = false;
+			int max = getMaximumKeyFromMap();
 			if (compareTitles) {
 				if (y == 0) {
 					throw new XlBeansIllegalFileFormatException(
 							"Cannot compare titles if the data is in the first row");
 				}
 				Row titleRow = sheet.getRow(y - 1);
-				int max = getMaximumKeyFromMap();
+
 				if (max > titleRow.getLastCellNum()) {
 					throw new XlBeansIllegalFileFormatException(
 							"Last cell number can't be smaller than maximum configured position");
@@ -268,43 +275,46 @@ public final class Mapper<T> implements AutoCloseable {
 						throw new XlBeansIllegalFileFormatException("At (" + i + "," + (y - 1) + ") Expected:"
 								+ this.xlDataTypeMap.get(i).getTitle() + ",Found:" + title);
 					}
-
 				}
+			}
 
-				int rowIndex = 0;
-				for (Row row : sheet) {
-					if (rowIndex < y) {
+			int rowIndex = 0;
+			for (Row row : sheet) {
+				if (rowIndex < y) {
+					continue;
+				}
+				T obj = clazz.newInstance();
+				for (int i = x; i <= max; i++) {
+					if (!this.xlDataTypeMap.containsKey(i)) {
 						continue;
 					}
-					T obj = clazz.newInstance();
-					for (int i = x; i < max; i++) {
-						if (!this.xlDataTypeMap.containsKey(i)) {
-							continue;
-						}
-						XlCellInfo info = this.xlDataTypeMap.get(i);
-						Cell cell = row.getCell(x);
-						CellType cellType = cell.getCellTypeEnum();
-						if (!XlBeansUtil.compareCellTypeEnumWithDataTypeString(cellType,
-								info.getField().getType().getName())) {
-							// TODO
-							throw new XlBeansIllegalFileFormatException();
-						}
-						if (this.transformer.isPresent()) {
-							obj = this.transformer.get().transform(obj);
-						}
+					XlCellInfo info = this.xlDataTypeMap.get(i);
+					Cell cell = row.getCell(i);
+					Optional<Object> value = XlBeansUtil.extractDataFromCellUsingFieldType(cell,
+							info.getField().getType().getName());
+					if (!value.isPresent()) {
+						throw new XlBeansException("xlBean configuration and xlSheet format not match at(" + i + ","
+								+ rowIndex + ")<Wanted:" + info.getField().getType().getName() + ",Found:"
+								+ cell.getCellTypeEnum() + ">");
 					}
 
-					rowIndex++;
-				}
+					info.getField().set(obj, value.get());
 
+					// TODO
+					if (this.transformer.isPresent()) {
+						obj = this.transformer.get().transform(obj);
+					}
+				}
+				beansList.add(obj);
+				rowIndex++;
 			}
+			return (List<T>) beansList;
 		} catch (InstantiationException e) {
-			throw new XLBeansException(e);
+			throw new XlBeansException(e);
 		} catch (IllegalAccessException e) {
-			throw new XLBeansException(e);
+			throw new XlBeansException(e);
 		}
 
-		return null;
 	}
 
 	/**

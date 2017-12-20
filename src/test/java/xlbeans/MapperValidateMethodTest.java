@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import xlbeans.MappingOptions.Index;
 import xlbeans.MappingOptions.MappingOptionsBuilder;
 import xlbeans.beans.TestBeanAllFieldsAnnotated;
-import xlbeans.exception.XLBeansException;
+import xlbeans.exception.XlBeansException;
 import xlbeans.exception.XlBeansIllegalFileFormatException;
 
 public class MapperValidateMethodTest {
@@ -106,7 +106,7 @@ public class MapperValidateMethodTest {
 		InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> {
 			assertThat(validateAndConfigurePath.invoke(mapper, xlsxFile, null, null, null));
 		});
-		assertThat(ex.getCause().getClass()).isEqualTo(XLBeansException.class);
+		assertThat(ex.getCause().getClass()).isEqualTo(XlBeansException.class);
 		assertThat(ex.getCause().getMessage()).isEqualTo("Cannot supply a null value for class object");
 	}
 
